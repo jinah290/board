@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="org.board.test.mapper.BoardMapper">
+
+<!-- 	// 글목록 -->
+<select id="list" resultType="org.board.test.domain.BoardVO">
+	<![CDATA[
+		select * from test_board where no > 0 order by no desc
+	
+	]]>
+</select>
+
+<!-- 	// 글보기 -->
+<select id="view" resultType="org.board.test.domain.BoardVO">
+	select * from test_board where no = #{no}
+</select>	
+
+<!-- 	// 글쓰기 -->
+<insert id="write">
+	insert into test_board (no,title,writer,content)
+	values (test_seq.nextval, #{title},#{writer},#{content})
+
+</insert>	
+
+<insert id="writeSelectKey">
+	<selectKey order="BEFORE" keyProperty="no" resultType="Long">
+	select test_seq.nextval from dual
+	</selectKey>
+	
+	insert into test_board (no,title,writer,content)
+	values (#{no}, #{title},#{writer},#{content})
+
+</insert>	
+
+<!-- 	// 글수정 -->
+<update id="update">
+	update test_board set
+	title = #{title},
+	writer = #{writer},
+	content = #{content},
+	updateDate = sysdate <!-- 현재시간날짜 -->
+	where no = #{no}
+</update>
+
+<!-- 	// 글삭제 -->
+<delete id="delete">
+	delete from test_board where no = #{no}
+</delete>
+
+<!-- //페이징 -->
+<select id="getlistWithPaging" resultType="org.board.test.domain.BoardVO">
+<![CDATA[
+select * from
+(
+select /*+ index_desc(test_board pk_test)*/ rownum rn, no, title, writer, writeDate, updateDate from test_board 
+where no > 0 and rownum > 0 and rownum <= (#{pageNum} * #{amount})
+)
+where rn > (#{pageNum}-1) * #{amount}
+]]>
+</select>
+
+<select id="getTotalCount" resultType="int">
+	select count(no) from test_board
+</select>
+</mapper>
